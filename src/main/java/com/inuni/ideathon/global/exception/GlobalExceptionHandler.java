@@ -9,6 +9,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @Slf4j
@@ -38,6 +39,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(errorCode.getStatus())
                 .body(ApiResponse.failure(errorCode.getCode(), errorMessage, null));
+    }
+
+    // 존재하지 않는 URL 또는 정적 리소스 요청 처리
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFoundException(NoResourceFoundException e) {
+        GlobalErrorCode errorCode = GlobalErrorCode.NOT_FOUND;
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ApiResponse.failure(errorCode.getCode(), errorCode.getMessage(), null));
     }
 
     // 지원하지 않는 HTTP 메서드 호출 처리
