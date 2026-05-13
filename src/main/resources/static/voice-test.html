@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>혼자ON 음성 AI 테스트</title>
+</head>
+<body>
+<h2>혼자ON 음성 AI 테스트</h2>
+
+<button id="startBtn">대화 시작하기 🎙️</button>
+
+<p><b>사용자:</b> <span id="userText"></span></p>
+<p><b>AI:</b> <span id="aiReply"></span></p>
+
+<script>
+    const startBtn = document.getElementById("startBtn");
+    const userTextEl = document.getElementById("userText");
+    const aiReplyEl = document.getElementById("aiReply");
+
+    startBtn.addEventListener("click", () => {
+        const SpeechRecognition =
+            window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            alert("이 브라우저는 음성 인식을 지원하지 않습니다. Chrome에서 테스트해주세요.");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = "ko-KR";
+        recognition.interimResults = false;
+        recognition.continuous = false;
+
+        recognition.onstart = () => {
+            startBtn.innerText = "듣는 중...";
+        };
+
+        recognition.onresult = async (event) => {
+            const transcript = event.results[0][0].transcript;
+            userTextEl.innerText = transcript;
+
+            await sendToAi(transcript);
+        };
+
+        recognition.onerror = (event) => {
+            console.error("음성 인식 오류:", event.error);
+            alert("음성 인식 오류: " + event.error);
+        };
+
+        recognition.onend = () => {
+            startBtn.innerText = "대화 시작하기 🎙️";
+        };
+
+        recognition.start();
+    });
+
+    async function sendToAi(message) {
+        try {
+            const response = await fetch("/api/ai/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: message
+                })
+            });
+
+            const data = await response.json();
+
+            const reply = data.result.reply;
+            aiReplyEl.innerText = reply;
+
+            speak(reply);
+        } catch (error) {
+            console.error(error);
+            alert("AI 응답 요청 실패");
+        }
+    }
+
+    function speak(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "ko-KR";
+        utterance.rate = 0.95;
+
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    }
+</script>
+</body>
+</html>
