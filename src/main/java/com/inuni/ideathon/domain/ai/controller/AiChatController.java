@@ -9,6 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = {
+        "http://localhost:3000",
+        "https://kah070809-rgb-ahyun-idea-front.vercel.app"
+})
 @RestController
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
